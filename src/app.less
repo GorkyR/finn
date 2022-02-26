@@ -1,0 +1,26 @@
+h1.title {
+	@apply font-medium text-4xl text-red-500 mb-4;
+}
+
+div.new-transaction {
+	@apply space-y-4;
+
+	table {
+		@apply w-full;
+
+		td:first-child {
+			@apply font-medium pr-2 w-0 align-baseline;
+		}
+	}
+
+	button.submit {
+		@apply flex-1 first:rounded-l-md last:rounded-r-md font-medium px-2 py-1;
+
+		&.income {
+			@apply bg-green-500 text-white hover:bg-green-600 active:bg-green-700;
+		}
+		&.spend {
+			@apply bg-red-500 text-white hover:bg-red-600 active:bg-red-700;
+		}
+	}
+}
