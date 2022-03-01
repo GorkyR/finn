@@ -1,0 +1,15 @@
+.daily {
+	@apply border border-gray-400 rounded-md p-2;
+	@apply dark:border-neutral-500;
+
+	thead {
+		@apply border-b border-gray-400;
+	}
+
+	tbody tr {
+		@apply even:bg-gray-200 dark:even:bg-neutral-800;
+		&.over { @apply bg-rose-100 dark:bg-rose-900; }
+
+		td:first-child { @apply cursor-default; }
+	}
+}

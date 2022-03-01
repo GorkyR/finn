@@ -1,0 +1,37 @@
+.transactions {
+  @apply border border-gray-400 rounded-md p-1 overflow-y-auto relative;
+  @apply dark:border-neutral-500;
+}
+.transactions table {
+  @apply absolute inset-y-0 rounded-md;
+  width: calc(100% - 0.5rem);
+}
+.transactions table thead {
+  @apply border-b border-gray-400;
+}
+.transactions table tbody tr {
+  @apply even:bg-gray-200 dark:even:bg-neutral-800;
+}
+.transactions table tbody tr.editing {
+  @apply bg-blue-200 dark:bg-blue-900;
+}
+.transactions table tbody tr.income {
+  @apply bg-green-100 dark:bg-green-900;
+}
+.transactions table tbody tr.over {
+  @apply bg-rose-100 dark:bg-rose-900;
+}
+.transactions table tbody tr td {
+  @apply px-2;
+}
+.transactions table tbody tr td.action-icons {
+  @apply text-gray-500 dark:text-white;
+}
+.transactions table tbody tr td.action-icons button {
+  @apply cursor-pointer hover:text-black px-2 rounded-md active:bg-gray-300;
+  @apply dark:hover:text-white dark:hover:bg-neutral-600 dark:active:bg-neutral-500;
+}
+.transactions table tbody tr td .tag {
+  @apply px-1 rounded cursor-default hover:bg-blue-300 dark:hover:bg-blue-800;
+}
+/*# sourceMappingURL=transactions.css.map */

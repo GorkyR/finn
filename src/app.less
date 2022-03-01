@@ -1,26 +1,51 @@
-h1.title {
-	@apply font-medium text-4xl text-red-500 mb-4;
+
+.sidebar {
+	@apply fixed inset-y-0 left-0 w-44 shadow-2xl border-r border-gray-200 p-4 space-y-2 font-medium text-center;
+	@apply dark:bg-neutral-800 dark:border-black;
 }
 
-div.new-transaction {
-	@apply space-y-4;
+div.content {
+	@apply p-4 fixed inset-y-0 left-44 right-0 flex flex-col;
+	@apply dark:bg-neutral-900 dark:text-white;
 
-	table {
-		@apply w-full;
+	h1.title { @apply font-medium text-4xl text-red-500 mb-4; }
+	h2.period { @apply font-medium text-2xl mb-2; }
 
-		td:first-child {
-			@apply font-medium pr-2 w-0 align-baseline;
+	.totals { @apply flex flex-row justify-end space-x-8 font-semibold; }
+
+	.new-transaction {
+		@apply space-y-4 w-full flex flex-col items-start border-gray-400;
+		@apply dark:border-neutral-500;
+	
+		table {
+			@apply w-max;
+			td:first-child { @apply font-medium pr-2 w-0 align-baseline; }
+			input, textarea {
+				@apply bg-transparent;
+				@apply dark:border-neutral-500;
+			}
 		}
-	}
-
-	button.submit {
-		@apply flex-1 first:rounded-l-md last:rounded-r-md font-medium px-2 py-1;
-
-		&.income {
-			@apply bg-green-500 text-white hover:bg-green-600 active:bg-green-700;
-		}
-		&.spend {
-			@apply bg-red-500 text-white hover:bg-red-600 active:bg-red-700;
+	
+		div.submit {
+			@apply flex flex-row;
+			width: min(50%, 25rem);
+	
+			button {
+				@apply flex-1 first:rounded-l-md last:rounded-r-md font-medium px-2 py-1;
+		
+				&.expense  {
+					@apply bg-red-500 text-white hover:bg-red-600 active:bg-red-700; 
+					@apply dark:bg-transparent dark:text-red-500 dark:font-bold dark:border dark:border-red-500 dark:hover:text-neutral-200;
+				}
+				&.income {
+					@apply bg-green-500 text-white hover:bg-green-600 active:bg-green-700; 
+					@apply dark:bg-transparent dark:text-green-500 dark:border-green-500 dark:border dark:font-bold dark:hover:text-neutral-200;
+				}
+				&.cancel {
+					@apply hover:bg-gray-200 active:bg-gray-300 border-gray-300 border;
+					@apply dark:hover:text-black;
+				}
+			}
 		}
 	}
 }

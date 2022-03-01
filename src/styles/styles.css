@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-size: 12px;
+}
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+code {
+  font-family: source-code-pro, Menlo, Monaco, 'Fira Code', Consolas, 'Courier New', monospace;
+}
+input,
+select,
+textarea {
+  @apply outline-none;
+}
+input:not(.no-style),
+select:not(.no-style),
+textarea:not(.no-style) {
+  @apply border border-gray-400 rounded px-1;
+}
+/*# sourceMappingURL=styles.css.map */

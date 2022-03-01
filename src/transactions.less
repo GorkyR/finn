@@ -1,12 +1,31 @@
-div.transactions {
-	@apply border border-gray-400 rounded-md p-1;
-	thead {
-		@apply border-b border-gray-400;
-	}
-	tbody tr {
-		@apply even:bg-gray-200;
-		td {
-			@apply px-2;
+.transactions {
+	@apply border border-gray-400 rounded-md p-1 overflow-y-auto relative;
+	@apply dark:border-neutral-500;
+	table {
+		@apply absolute inset-y-0 rounded-md;
+		width: calc(100% - 0.5rem);
+		thead {
+			@apply border-b border-gray-400;
+		}
+		tbody tr {
+			@apply even:bg-gray-200 dark:even:bg-neutral-800;
+			&.editing { @apply bg-blue-200 dark:bg-blue-900; }
+			&.income { @apply bg-green-100 dark:bg-green-900; }
+			&.over { @apply bg-rose-100 dark:bg-rose-900; }
+			td {
+				@apply px-2;
+
+				&.action-icons {
+					@apply text-gray-500 dark:text-white;
+					
+					button {
+						@apply cursor-pointer hover:text-black px-2 rounded-md active:bg-gray-300;
+						@apply dark:hover:text-white dark:hover:bg-neutral-600 dark:active:bg-neutral-500;
+					}
+				}
+				
+				.tag { @apply px-1 rounded cursor-default hover:bg-blue-300 dark:hover:bg-blue-800; }
+			}
 		}
 	}
 }
