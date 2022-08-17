@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+	@apply bg-neutral-50 text-neutral-900 min-h-screen;
+	@apply dark:bg-neutral-900 dark:text-neutral-50;
+}
+
+:is(input,select,textarea) {
+	@apply outline-none;
+	@apply dark:bg-neutral-700 dark:text-neutral-100 dark:border-neutral-800;
+}
+
+label.label {
+	@apply font-medium text-xs;
+}
+
+.input {
+	&:is(input, select, textarea, div) {
+		@apply min-w-0 w-full flex-1 border border-neutral-200 rounded px-2;
+		@apply dark:bg-neutral-700 dark:text-neutral-100 dark:border-neutral-800;
+	}
+	&:is(div) {
+		@apply flex border border-neutral-200;
+		@apply dark:bg-neutral-700 dark:text-neutral-100 dark:border-neutral-800;
+
+		& > :is(input) {
+			@apply flex-1;
+		}
+	}
+}
+
+button.button {
+	@apply border border-neutral-200 rounded px-2 py-px;
+	@apply dark:border-neutral-800;
+}
+
+table.table {
+	@apply text-sm w-full text-left text-neutral-500;
+
+	thead {
+		@apply text-xs text-neutral-700 uppercase bg-neutral-200;
+		@apply dark:bg-neutral-800 dark:text-neutral-100;
+
+		th {
+			@apply py-3 px-6;
+		}
+	}
+
+	tbody {
+		tr {
+			@apply even:bg-neutral-100; 
+			@apply dark:even:bg-neutral-700;
+			&:not(:last-child) {
+				@apply border-b border-neutral-200;
+				@apply dark:border-neutral-700;
+			}
+		}
+
+		td {
+			@apply py-2 px-6;
+		}
+	}
+}

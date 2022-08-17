@@ -11,6 +11,76 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+model Transaction {
+    id Int @id @default(autoincrement())
+
+    date  DateTime @default(now())
+    year  Int
+    month Int
+
+    destination String
+    description String?
+    amount      Decimal
+
+    user_id String
+    user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+    tags Tag[]
+
+    @@index([user_id])
+    @@index([year])
+    @@index([month, year])
+}
+
+model Tag {
+    id   Int    @id @default(autoincrement())
+    name String
+
+    user_id String
+    user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+    transactions Transaction[]
+    budgets      Budget[]
+
+    @@unique([name, user_id])
+    @@index([user_id])
+    @@index([name, user_id])
+}
+
+model Expense {
+    id           Int       @id @default(autoincrement())
+    name         String
+    description  String
+    lower_amount Decimal
+    upper_amount Decimal
+    start_time   DateTime
+    end_time     DateTime?
+    repeats      Int
+
+    user_id String
+    user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+    @@unique([name, user_id])
+    @@index([user_id])
+    @@index([name, user_id])
+}
+
+model Budget {
+    id          Int     @id @default(autoincrement())
+    name        String
+    description String?
+    amount      Decimal
+
+    user_id String
+    user    User   @relation(fields: [user_id], references: [id])
+
+    tags Tag[]
+
+    @@unique([name, user_id])
+    @@index([user_id])
+    @@index([name, user_id])
+}
+
 // Necessary for Next auth
 model Account {
     id                String  @id @default(cuid())
@@ -46,6 +116,11 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
+
+    transactions Transaction[]
+    tags         Tag[]
+    Expense      Expense[]
+    Budget       Budget[]
 }
 
 model VerificationToken {
