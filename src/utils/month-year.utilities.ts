@@ -1,4 +1,7 @@
-import { MonthYear } from '../types/month-year'
+export type MonthYear = {
+	year: number
+	month: number
+}
 
 const months_es = [
 	'enero',

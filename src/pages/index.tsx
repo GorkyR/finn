@@ -1,22 +1,22 @@
 import type { NextPage } from 'next'
-import { useSession, signIn, signOut } from 'next-auth/react'
-import Head from 'next/head'
+import { useSession, signIn } from 'next-auth/react'
+import { useRouter } from 'next/router'
 import Icon from '../components/icon'
+import { WithMainLayout } from './_app'
 
-const Home: NextPage = () => {
+const HomePage: NextPage = () => {
 	const { data: session, status } = useSession()
-	console.debug('session:', session)
+	const navigate = useRouter().push
 
 	if (status === 'loading') return <Icon icon='spinner' size='3x' pulse />
 
+	if (status === 'authenticated') {
+		navigate('/transactions')
+		return <></>
+	}
+
 	return (
 		<>
-			<Head>
-				<title>{session ? `${session.user?.name} | ` : ''}Finn</title>
-				<meta name='description' content='Finance tracker' />
-				<link rel='icon' href='/favicon.ico' />
-			</Head>
-
 			<main
 				className={[
 					'container min-h-screen mx-auto',
@@ -25,24 +25,22 @@ const Home: NextPage = () => {
 				]
 					.filter((_) => _)
 					.join(' ')}>
-				{session ? (
-					<>
-						<div className='sidebar'></div>
-						<div className='main'>
-							<h1 className='font-semibold text-xl'>{session.user?.name}</h1>
-						</div>
-					</>
-				) : (
-					// Not logged in
+				<div className='flex flex-col gap-3'>
 					<button
 						className='border rounded-md p-2 border-neutral-300 shadow-lg'
 						onClick={() => signIn('google')}>
 						Sign in with <Icon icon={['fab', 'google']} title='Google' className='text-red-500' />
 					</button>
-				)}
+
+					<button
+						className='border rounded-md p-2 border-neutral-300 shadow-lg'
+						onClick={() => signIn('github')}>
+						Sign in with <Icon icon={['fab', 'github']} title='GitHub' />
+					</button>
+				</div>
 			</main>
 		</>
 	)
 }
 
-export default Home
+export default WithMainLayout(HomePage, '')

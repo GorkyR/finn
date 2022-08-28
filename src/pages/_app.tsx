@@ -1,7 +1,6 @@
 // src/pages/_app.tsx
 import { withTRPC } from '@trpc/next'
 import type { AppRouter } from '../server/router'
-import type { AppType } from 'next/dist/shared/lib/utils'
 import superjson from 'superjson'
 import { SessionProvider } from 'next-auth/react'
 import '@fortawesome/fontawesome-svg-core/styles.css'
@@ -16,17 +15,29 @@ import '../utils/extensions/array.ex'
 import '../utils/extensions/date.ex'
 import '../utils/extensions/number.ex'
 import '../utils/extensions/string.ex'
+import { NextPage } from 'next/types'
+import { ReactElement, ReactNode } from 'react'
+import { AppProps } from 'next/app'
+import MainLayout from '../components/main.layout'
 
 config.autoAddCss = true
 
 library.add(fas, far, fab)
 
-const MyApp: AppType = ({ Component, pageProps: { session, ...pageProps } }) => {
-	return (
-		<SessionProvider session={session}>
-			<Component {...pageProps} />
-		</SessionProvider>
-	)
+const App = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWithLayout) => {
+	const layout = Component.getLayout ?? ((page) => page)
+	return <SessionProvider session={session}>{layout(<Component {...pageProps} />)}</SessionProvider>
+}
+
+export type NextPageWithLayout = NextPage & {
+	getLayout?: (page: ReactElement) => ReactNode
+}
+type AppPropsWithLayout = AppProps & {
+	Component: NextPageWithLayout
+}
+export function WithMainLayout(page: NextPage, title: string): NextPageWithLayout {
+	;(page as NextPageWithLayout).getLayout = (page) => <MainLayout title={title}>{page}</MainLayout> //eslint-disable-line
+	return page
 }
 
 const getBaseUrl = () => {
@@ -59,4 +70,4 @@ export default withTRPC<AppRouter>({
 	 * @link https://trpc.io/docs/ssr
 	 */
 	ssr: false,
-})(MyApp)
+})(App)
