@@ -1,0 +1,39 @@
+.toaster {
+	@apply absolute inset-0;
+
+	.toasts {
+		@apply flex flex-col w-full space-y-2 pointer-events-none;
+
+		&.top    { @apply absolute top-0    pt-4; }
+		&.bottom { @apply absolute bottom-0 pb-4; }
+
+		&.left   { @apply items-start  pl-4; }
+		&.right  { @apply items-end    pr-4; }
+		&.center { @apply items-center ; }
+
+		.toast {
+			@apply z-10 relative;
+			@apply rounded shadow p-4 w-max font-medium;
+			@apply bg-white;
+			@apply pointer-events-auto;
+			@apply flex flex-row items-center;
+			@apply whitespace-pre-wrap;
+
+			&.error   { @apply bg-rose-600  text-white; }
+			&.info    { @apply bg-sky-600   text-white; }
+			&.warning { @apply bg-amber-500 text-white; }
+			&.success { @apply bg-green-600 text-white; }
+
+			svg.dismiss {
+				@apply hidden;
+				@apply absolute top-0 left-px cursor-pointer;
+			}
+			&:hover {
+				svg.dismiss { @apply block; }
+			}
+
+			svg.icon { @apply text-lg; }
+			p { @apply ml-2; }
+		}
+	}
+}

@@ -19,6 +19,7 @@ import { NextPage } from 'next/types'
 import { ReactElement, ReactNode } from 'react'
 import { AppProps } from 'next/app'
 import MainLayout from '../components/main.layout'
+import Toaster from '../components/toaster/toaster'
 
 config.autoAddCss = true
 
@@ -26,7 +27,13 @@ library.add(fas, far, fab)
 
 const App = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWithLayout) => {
 	const layout = Component.getLayout ?? ((page) => page)
-	return <SessionProvider session={session}>{layout(<Component {...pageProps} />)}</SessionProvider>
+	return (
+		<SessionProvider session={session}>
+			<Toaster top right>
+				{layout(<Component {...pageProps} />)}
+			</Toaster>
+		</SessionProvider>
+	)
 }
 
 export type NextPageWithLayout = NextPage & {

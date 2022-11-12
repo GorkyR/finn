@@ -10,7 +10,7 @@ import { format_day } from '../utils/day-month.utilities'
 import { compare_months, date_to_month, format_month } from '../utils/month-year.utilities'
 import { cx } from '../utils/react.utilities'
 import { titlecase } from '../utils/string.utils'
-import { useToggle } from '../utils/toggle.hook'
+import useToggle from '../utils/toggle.hook'
 import { trpc } from '../utils/trpc'
 import { WithMainLayout } from './_app'
 
@@ -22,9 +22,7 @@ type MonthYear = {
 function month_days(month: MonthYear): Date[] {
 	const first = new Date(month.year, month.month, 1)
 	const last_plus_one = first.add({ months: 1 })
-	const number_of_days = compare_months(date_to_month(new Date()), month)
-		? first.delta(last_plus_one).days
-		: new Date().getDate()
+	const number_of_days = compare_months(date_to_month(new Date()), month) ? first.delta(last_plus_one).days : new Date().getDate()
 	const days = []
 	for (let i = 0; i < number_of_days; i++) {
 		days.push(first.add({ days: i }))
@@ -69,7 +67,7 @@ const TransactionsPage = () => {
 			<Show when={!isLoading && transactions} fallback={<Icon icon='spinner' size='2x' pulse />}>
 				{(transactions) => (
 					<>
-						<button onClick={new_tran.turn_on} className='button mb-4'>
+						<button onClick={new_tran.on} className='button mb-4'>
 							Nueva transacción
 						</button>
 
@@ -77,18 +75,14 @@ const TransactionsPage = () => {
 							<div className='flex-1'>
 								<Transactions
 									transactions={transactions}
+									onChange={refetch}
 									focused={{ tag: focused_tag, day: focused_day }}
 									onTagFocus={set_tag}
 									onDayFocus={set_day}
 								/>
 							</div>
 
-							<MonthDays
-								transactions={transactions}
-								month={month}
-								focused_day={focused_day}
-								onDayFocus={set_day}
-							/>
+							<MonthDays transactions={transactions} month={month} focused_day={focused_day} onDayFocus={set_day} />
 
 							<Tags transactions={transactions} focused_tag={focused_tag} onTagFocus={set_tag} />
 						</div>
@@ -96,10 +90,10 @@ const TransactionsPage = () => {
 				)}
 			</Show>
 
-			<Modal show={new_tran.on} onDismiss={new_tran.turn_off} className='min-w-[400px]'>
-				<RegisterTransaction
-					onRegistered={() => {
-						new_tran.turn_off()
+			<Modal when={new_tran()} onDismiss={new_tran.off} className='card min-w-[400px]'>
+				<RegisterOrEditTransaction
+					onSave={() => {
+						new_tran.off()
 						refetch()
 					}}
 				/>
@@ -108,8 +102,12 @@ const TransactionsPage = () => {
 	)
 }
 
+export default WithMainLayout(TransactionsPage, 'Transacciones')
+
 interface TransactionsProps {
 	transactions: (Transaction & { tags: Tag[] })[]
+	onChange?: () => void
+
 	focused?: {
 		tag?: string
 		day?: number
@@ -117,9 +115,15 @@ interface TransactionsProps {
 	onTagFocus?: (name?: string) => void
 	onDayFocus?: (day?: number) => void
 }
-const Transactions = ({ transactions, focused, onTagFocus, onDayFocus }: TransactionsProps) => {
+const Transactions = ({ transactions, onChange, focused, onTagFocus, onDayFocus }: TransactionsProps) => {
 	const total = sum(transactions.map((t) => Number(t.amount)) ?? [])
 	const expense = sum(transactions.filter((t) => Number(t.amount) > 0).map((t) => Number(t.amount)) ?? [])
+
+	const [editing_transaction, edit] = useState<Transaction & { tags: Tag[] }>()
+
+	const { mutate: remove, isLoading: deleting } = trpc.useMutation(['transactions.delete'], {
+		onSuccess: onChange,
+	})
 
 	return (
 		<>
@@ -131,7 +135,7 @@ const Transactions = ({ transactions, focused, onTagFocus, onDayFocus }: Transac
 						<th>Concepto</th>
 						<th colSpan={3}>Monto</th>
 						<th>Etiquetas</th>
-						<th></th>
+						<th />
 					</tr>
 				</thead>
 				<tbody>
@@ -142,13 +146,11 @@ const Transactions = ({ transactions, focused, onTagFocus, onDayFocus }: Transac
 							<tr
 								key={t.id}
 								className={cx({
-									'!bg-red-500 !text-white':
-										t.tags.some((t) => t.name == focused?.tag) || t.date.getDate() == focused?.day,
+									'!bg-rose-100': t.tags.some((t) => t.name == focused?.tag) || t.date.getDate() == focused?.day,
+									'!bg-green-100': Number(t.amount) < 0,
 								})}>
 								<td>
-									<span
-										onMouseEnter={() => onDayFocus?.(t.date.getDate())}
-										onMouseLeave={() => onDayFocus?.()}>
+									<span onMouseEnter={() => onDayFocus?.(t.date.getDate())} onMouseLeave={() => onDayFocus?.()}>
 										{format_date(t.date)}
 									</span>
 								</td>
@@ -170,16 +172,39 @@ const Transactions = ({ transactions, focused, onTagFocus, onDayFocus }: Transac
 										))}
 									</div>
 								</td>
-								<td></td>
+								<td>
+									<div className='flex justify-end gap-2'>
+										<button title='Editar' onClick={() => edit(t)} className='button'>
+											<Icon icon='edit' />
+										</button>
+										<button title='Eliminar' onClick={() => remove(t.id)} className='button'>
+											<Icon icon={['far', 'trash-alt']} />
+										</button>
+									</div>
+								</td>
 							</tr>
 						))}
 				</tbody>
 			</table>
-			<div className='flex justify-between'>
+			<div className='flex justify-between mt-8'>
 				<div>Gastos: RD$ {expense.toCurrency()}</div>
 				<div>Ingresos: RD$ {(-total + expense).toCurrency()}</div>
 				<div>Neto: RD$ {(-total).toCurrency()}</div>
 			</div>
+
+			<Modal when={editing_transaction} onDismiss={edit as any}>
+				<RegisterOrEditTransaction
+					transaction={editing_transaction}
+					onSave={() => {
+						edit(undefined)
+						onChange?.()
+					}}
+				/>
+			</Modal>
+
+			<Modal when={deleting} blur={false}>
+				<Icon icon='spinner' size='3x' pulse />
+			</Modal>
 		</>
 	)
 }
@@ -205,7 +230,7 @@ const MonthDays = ({ transactions, month, focused_day, onDayFocus }: MonthDaysPr
 						key={date.valueOf()}
 						onMouseEnter={() => onDayFocus?.(date.getDate())}
 						onMouseLeave={() => onDayFocus?.()}
-						className={cx({ '!bg-red-500 !text-white': date.getDate() == focused_day })}>
+						className={cx({ '!bg-rose-100': date.getDate() == focused_day })}>
 						<td className='text-right'>{titlecase(format_day(date), 'es')}</td>
 						<td className='w-0 !pr-1'>RD$</td>
 						<td className='w-0 !pl-1 text-right'>
@@ -250,22 +275,13 @@ const Tags = ({ transactions, focused_tag, onTagFocus }: TagsProps) => {
 						key={tag.key}
 						onMouseEnter={() => onTagFocus?.(tag.key)}
 						onMouseLeave={() => onTagFocus?.()}
-						className={cx({ '!bg-red-500 !text-white': tag.key == focused_tag })}>
+						className={cx({ '!bg-rose-100': tag.key == focused_tag })}>
 						<td>{tag.key}</td>
 						<td className='text-right'>
-							{(
-								(sum(tag.items.filter((t) => Number(t.amount) > 0).map((t) => Number(t.amount))) /
-									expense) *
-								100
-							).toFixed(1)}
-							%
+							{((sum(tag.items.filter((t) => Number(t.amount) > 0).map((t) => Number(t.amount))) / expense) * 100).toFixed(1)}%
 						</td>
 						<td className='w-0 !pr-1'>RD$</td>
-						<td className='w-0 !pl-1 text-right'>
-							{sum(
-								tag.items.filter((t) => Number(t.amount) >= 0).map((t) => Number(t.amount))
-							).toCurrency()}
-						</td>
+						<td className='w-0 !pl-1 text-right'>{sum(tag.items.filter((t) => Number(t.amount) >= 0).map((t) => Number(t.amount))).toCurrency()}</td>
 					</tr>
 				))}
 			</tbody>
@@ -273,7 +289,11 @@ const Tags = ({ transactions, focused_tag, onTagFocus }: TagsProps) => {
 	)
 }
 
-function RegisterTransaction({ onRegistered }: { onRegistered: (id: number) => void }) {
+interface RegisterOrEditTransactionProps {
+	transaction?: Transaction & { tags: Tag[] }
+	onSave?: () => void
+}
+function RegisterOrEditTransaction({ transaction, onSave }: RegisterOrEditTransactionProps) {
 	type TransactionForm = {
 		date: Date
 		destination: string
@@ -288,19 +308,25 @@ function RegisterTransaction({ onRegistered }: { onRegistered: (id: number) => v
 		handleSubmit,
 	} = useForm<TransactionForm>({
 		defaultValues: {
-			date: new Date().to_short() as any,
-			expense: true,
-			amount: 0,
+			date: (transaction?.date?.to_short() ?? new Date().to_short()) as any,
+			expense: transaction ? Number(transaction.amount) > 0 : true,
+			amount: Math.abs(Number(transaction?.amount ?? 0)),
+			description: transaction?.description as string | undefined,
+			destination: transaction?.destination,
+			tags: transaction?.tags?.map((t) => t.name)?.join(' ') ?? undefined,
 		},
 	})
 
-	const { mutate: create, isLoading: working } = trpc.useMutation(['transactions.new'], {
-		onSuccess: onRegistered,
+	const { mutate: create, isLoading: working_creating } = trpc.useMutation(['transactions.new'], {
+		onSuccess: onSave,
+	})
+	const { mutate: update, isLoading: working_editing } = trpc.useMutation(['transactions.edit'], {
+		onSuccess: onSave,
 	})
 
-	function register(data: TransactionForm) {
-		console.debug('data:', data)
+	const working = working_creating || working_editing
 
+	function register(data: TransactionForm) {
 		const tags = data.tags
 			.split(',')
 			.map((t) => t.trim())
@@ -308,8 +334,16 @@ function RegisterTransaction({ onRegistered }: { onRegistered: (id: number) => v
 		create({ ...data, tags, amount: data.expense ? data.amount : -data.amount })
 	}
 
+	function edit(data: TransactionForm) {
+		const tags = data.tags
+			.split(',')
+			.map((t) => t.trim())
+			.filter((_) => _)
+		update({ ...data, tags, amount: data.expense ? data.amount : -data.amount, id: transaction!.id })
+	}
+
 	return (
-		<form onSubmit={handleSubmit(register)} className='grid gap-3'>
+		<form onSubmit={handleSubmit(transaction ? edit : register)} className='grid gap-3'>
 			<h1 className='font-medium text-lg'>Registrar transacción</h1>
 
 			<div className='grid'>
@@ -380,14 +414,7 @@ function RegisterTransaction({ onRegistered }: { onRegistered: (id: number) => v
 				<label htmlFor='tags' className='label'>
 					Etiquetas
 				</label>
-				<input
-					id='tags'
-					{...field('tags', { disabled: working })}
-					type='text'
-					title='Etiquetas'
-					placeholder='ej. work, home'
-					className='input'
-				/>
+				<input id='tags' {...field('tags', { disabled: working })} type='text' title='Etiquetas' placeholder='ej. work, home' className='input' />
 			</div>
 
 			<div className='flex flex-row-reverse gap-3'>
@@ -413,5 +440,3 @@ function RegisterTransaction({ onRegistered }: { onRegistered: (id: number) => v
 		</form>
 	)
 }
-
-export default WithMainLayout(TransactionsPage, 'Transactions')

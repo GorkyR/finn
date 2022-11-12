@@ -1,43 +1,38 @@
+import { useRef, useState } from 'react'
 import { cx } from '../utils/react.utilities'
 
-type Child = undefined | null | string | number | JSX.Element
+type Child = undefined | null | boolean | number | string | JSX.Element
 
 type ModalProperties<T> = {
-	show?: T
-	onDismiss?: () => void
+	when?: boolean | T
+	children: Child | Child[] | ((data: T) => Child | Child[])
 	className?: string
+	onDismiss?: () => void
+
 	blur?: boolean
-	container?: boolean
-	children?: (Child | Child[]) | ((show: T) => Child | Child[])
 }
-export default function Modal<T>({
-	show,
-	children,
-	onDismiss,
-	className,
-	blur,
-	container,
-}: ModalProperties<T>) {
-	return !show ? (
-		<></>
-	) : (
+export default function Modal<T>({ children, className, when: show, onDismiss, blur }: ModalProperties<T>) {
+	const container = useRef<HTMLDivElement>()
+	const content = useRef<HTMLDivElement>()
+	const [is_dismissing, dismissing] = useState(false)
+	return show ? (
 		<div
-			className={cx('fixed inset-0 grid place-items-center', {
-				'backdrop-blur-sm': blur ?? true,
-			})}
-			style={{ backgroundColor: 'rgba(0, 0, 0, .1)' }}>
-			<div className='fixed inset-0 z-0' onClick={() => onDismiss?.()} />
-			<div
-				className={cx(
-					'p-6 z-10 max-w-[90vw] max-h-[90vh]',
-					{
-						'bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 shadow-md dark:shadow-xl dark:shadow-neutral-900':
-							container ?? true,
-					},
-					className
-				)}>
-				{typeof children == 'function' ? children(show) : children}
+			ref={container as any}
+			onMouseDown={(e) => {
+				if (!content.current?.contains(e.target as any)) dismissing(true)
+			}}
+			onMouseUp={(e) => {
+				if (!content.current?.contains(e.target as any) && is_dismissing) onDismiss?.()
+				dismissing(false)
+			}}
+			className={cx('fixed inset-0 bg-black bg-opacity-10 grid place-items-center', {
+				'backdrop-blur': blur,
+			})}>
+			<div ref={content as any} className={cx('max-w-[95vw] max-h-[90vh]', className)}>
+				{typeof children === 'function' ? children(show as T) : children}
 			</div>
 		</div>
+	) : (
+		<></>
 	)
 }

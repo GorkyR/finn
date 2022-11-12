@@ -4,7 +4,6 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useMemo, useState } from 'react'
 import { cx } from '../utils/react.utilities'
-import { trpc } from '../utils/trpc'
 import Icon from './icon'
 
 type Child = undefined | null | boolean | number | string | JSX.Element
@@ -15,7 +14,12 @@ type MenuItem = {
 	children?: MenuItem[]
 }
 
-const menu: MenuItem[] = [{ label: 'Transactions' }]
+const menu: MenuItem[] = [
+	{ label: 'Transacciones', icon: 'receipt', link: '/transactions' },
+	{ label: 'Gastos', icon: 'hand-holding-dollar', link: '/expenses' },
+	{ label: 'Ingresos', icon: 'coins', link: '/income' },
+	{ label: 'Presupuestos', icon: 'scale-unbalanced', link: '/bugets' },
+]
 
 export default function MainLayout({ children, title }: { title: string; children: Child | Child[] }) {
 	const router = useRouter()
@@ -43,8 +47,7 @@ export default function MainLayout({ children, title }: { title: string; childre
 				<div
 					onClick={() => {
 						if (i.link) navigate(i.link)
-						else if (i.children?.length)
-							setExpanded((e) => (e.includes(i) ? e.filter((_i) => _i != i) : [...e, i]))
+						else if (i.children?.length) setExpanded((e) => (e.includes(i) ? e.filter((_i) => _i != i) : [...e, i]))
 					}}
 					className={cx(
 						'flex flex-row gap-2 items-center',
@@ -56,9 +59,7 @@ export default function MainLayout({ children, title }: { title: string; childre
 					<span className='flex-1'>{i.label}</span>
 					{i.children?.length && <Icon icon={is_expanded ? 'angle-down' : 'angle-right'} />}
 				</div>
-				{i.children?.length && is_expanded && (
-					<div className='pl-3 ml-2 border-l border-neutral-300'>{i.children.map(item)}</div>
-				)}
+				{i.children?.length && is_expanded && <div className='pl-3 ml-2 border-l border-neutral-300'>{i.children.map(item)}</div>}
 			</div>
 		)
 	}
